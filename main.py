@@ -6,7 +6,7 @@ intents = discord.Intents.default()
 intents.message_content = True  # Necesario para recibir el contenido de los mensajes
 
 # Inicializa el bot con el prefijo '!' y los intents
-bot = commands.Bot(command_prefix='!', intents=intents)
+bot = commands.Bot(command_prefix='.', intents=intents)
 
 # Archivo donde se almacenará el valor del contador
 COUNTER_FILE = 'counter.txt'
@@ -16,7 +16,7 @@ def read_counter():
     try:
         with open(COUNTER_FILE, 'r') as file:
             return int(file.read())
-    except FileNotFoundError:
+    except FileNotFoundError: 
         return 0
 
 # Función para escribir el contador en el archivo
