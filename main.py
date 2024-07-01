@@ -1,6 +1,8 @@
 import discord
 from discord.ext import commands
 
+from apikeys import *
+
 # Inicializa los intents
 intents = discord.Intents.default()
 intents.message_content = True  # Necesario para recibir el contenido de los mensajes
@@ -42,4 +44,4 @@ async def on_ready():
     print(f'Bot listo. Conectado como {bot.user}')
 
 # Reemplaza 'YOUR_BOT_TOKEN' con el token de tu bot
-# bot.run()
+bot.run(BOTTOKEN) 
