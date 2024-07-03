@@ -50,6 +50,14 @@ async def leave(ctx):
     else:
         await ctx.send("You must be in a voice channel to run this command")
 
+@bot.command()
+async def max(ctx):
+    await ctx.send("El max es un friki con nombre de perro")
+
+@bot.command()
+async def say(ctx, *, text: str):
+    await ctx.message.delete()
+    await ctx.send(text)
 
 # Suppress noise about console usage from errors
 # Configuración de opciones para yt_dlp
