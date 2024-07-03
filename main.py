@@ -101,7 +101,7 @@ class YTDLSource(discord.PCMVolumeTransformer):
 
 
 @bot.command(name='play', help='Reproduce una canción desde YouTube')
-async def play(ctx, url):
+async def play(ctx, *, url):
     if not ctx.voice_client:  # Si el bot no está en un canal de voz, se une
         if ctx.author.voice:
             await ctx.author.voice.channel.connect()
