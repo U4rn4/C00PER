@@ -1,12 +1,33 @@
 import discord
 from discord.ext import commands
 from apikeys import *
-import yt_dlp as youtube_dl  # Cambia youtube_dl por yt_dlp
-import asyncio
+import yt_dlp  
+import asyncio # For the bot tokken and other private things
 
 # Inicializa los intents
 intents = discord.Intents.default()
 intents.message_content = True  # Necesario para recibir el contenido de los mensajes
+intents.voice_states = True
+
+ytdl_format_options = {
+    'format': 'bestaudio/best',
+    'outtmpl': '%(extractor)s-%(id)s-%(title)s.%(ext)s',
+    'restrictfilenames': True,
+    'noplaylist': True,
+    'nocheckcertificate': True,
+    'ignoreerrors': False,
+    'logtostderr': False,
+    'quiet': True,
+    'no_warnings': True,
+    'default_search': 'auto',
+    'source_address': '0.0.0.0'
+}
+
+ffmpeg_options = {
+    'options': '-vn',  # Esta opción deshabilita la salida de video, es adecuada para reproducción de audio
+    'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5'
+
+}
 
 # Inicializa el bot con el prefijo '!' y los intents
 bot = commands.Bot(command_prefix='.', intents=intents)
@@ -34,7 +55,7 @@ async def count(ctx):
     write_counter(counter)
     await ctx.send(counter)
 
-@bot.command(pass_context = True)
+@bot.command()
 async def join(ctx):
     if ctx.author.voice:
         channel = ctx.message.author.voice.channel
@@ -42,7 +63,7 @@ async def join(ctx):
     else:
         await ctx.send("You must be in a voice channel to run this command")
 
-@bot.command(pass_context = True)
+@bot.command()
 async def leave(ctx):
     if ctx.voice_client:
         await ctx.guild.voice_client.disconnect()
@@ -61,83 +82,75 @@ async def say(ctx, *, text: str):
 
 # Suppress noise about console usage from errors
 # Configuración de opciones para yt_dlp
-ytdl_format_options = {
-    'format': 'bestaudio/best',
-    'outtmpl': '%(extractor)s-%(id)s-%(title)s.%(ext)s',
-    'restrictfilenames': True,
-    'noplaylist': True,
-    'nocheckcertificate': True,
-    'ignoreerrors': False,
-    'logtostderr': False,
-    'quiet': True,
-    'no_warnings': True,
-    'default_search': 'auto',
-    'source_address': '0.0.0.0'
-}
 
-ffmpeg_options = {
-    'options': '-vn',  # Esta opción deshabilita la salida de video, es adecuada para reproducción de audio
-    'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5'
+queues = []
 
-}
-
-ytdl = youtube_dl.YoutubeDL(ytdl_format_options)
-
-class YTDLSource(discord.PCMVolumeTransformer):
-    def __init__(self, source, *, data, volume=0.5):
-        super().__init__(source, volume)
-        self.data = data
-        self.title = data.get('title')
-        self.url = data.get('url')
-
-    @classmethod
-    async def from_url(cls, url, *, loop=None, stream=False):
-        loop = loop or asyncio.get_event_loop()
-        data = await loop.run_in_executor(None, lambda: ytdl.extract_info(url, download=not stream))
-
-        if 'entries' in data:
-            data = data['entries'][0]
-
-        filename = data['url'] if stream else ytdl.prepare_filename(data)
-        return cls(discord.FFmpegPCMAudio(filename, **ffmpeg_options), data=data)
-
-
-@bot.command(name='play', help='Reproduce una canción desde YouTube')
-async def play(ctx, *, url):
-    if not ctx.voice_client:  # Si el bot no está en un canal de voz, se une
-        if ctx.author.voice:
-            await ctx.author.voice.channel.connect()
-        else:
-            await ctx.send("¡Debes estar en un canal de voz para reproducir música!")
-            return
+@bot.command()
+async def play(ctx,*,search):
+    voice_channel = ctx.author.voice.channel if ctx.author.voice else None
+    if not voice_channel:
+           return await ctx.send("You must be in a voice channel")
+    if not ctx.voice_client:
+       await voice_channel.connect()
 
     async with ctx.typing():
-        player = await YTDLSource.from_url(url, loop=bot.loop, stream=True)
-        ctx.voice_client.play(player, after=lambda e: print('Error en el reproductor: %s' % e) if e else None)
+        
+        with yt_dlp.YoutubeDL(ytdl_format_options) as ydl:
+            if "youtube.com" in search or "youtu.be" in search: info = ydl.extract_info(search, download=False)
+            else: info = ydl.extract_info(f"ytsearch:{search}", download=False)
+            if "entries" in info:
+                info = info["entries"][0]
+            url = info["url"]
+            title = info["title"]   
+            queues.append((url, title))
+            if ctx.voice_client.is_playing(): await ctx.send(f"Added to queue: {title}")
+        if not ctx.voice_client.is_playing():
+            await play_next(ctx)
 
-    await ctx.send('Reproduciendo: {}'.format(player.title))
+async def play_next(ctx):
+        if queues:
+            url, title = queues.pop(0)
+            source = await discord.FFmpegOpusAudio.from_probe(url, **ffmpeg_options)
+            ctx.voice_client.play(source, after = lambda _: bot.loop.create_task(play_next(ctx)))
+            await ctx.send(f"Now playing {title}")
+        
+@bot.command()
+async def skip(ctx):
+        if ctx.voice_client and ctx.voice_client.is_playing():
+            ctx.voice_client.stop()
+            await ctx.send("Skipped")
+
 
 @bot.command(name='pause', help='Pausa la canción')
 async def pause(ctx):
     if ctx.voice_client.is_playing():
         ctx.voice_client.pause()
-        await ctx.send("Canción pausada")
+        await ctx.send("Song paused")
     else:
-        await ctx.send("No hay ninguna canción reproduciéndose")
+        await ctx.send("No song is playing")
 
 @bot.command(name='resume', help='Reanuda la canción')
 async def resume(ctx):
     if ctx.voice_client.is_paused():
         ctx.voice_client.resume()
-        await ctx.send("Canción reanudada")
+        await ctx.send("Song resumed")
     else:
-        await ctx.send("La canción no está pausada")
+        await ctx.send("The song is not paused")
 
 @bot.command(name='stop', help='Detiene la canción')
 async def stop(ctx):
+    queues.clear()
     ctx.voice_client.stop()
-    await ctx.send("Canción detenida")
+    await ctx.send("Bot stopped")
 
+@bot.command()
+async def queue(ctx):
+    async with ctx.typing():
+        message = "### This is the queue: \n```"
+        for i in queues:
+            message +=  i[1] + "\n"
+        message += "```"
+    await ctx.send(message)
 
 # Evento que indica que el bot está listo
 @bot.event
