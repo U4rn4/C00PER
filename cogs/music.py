@@ -32,10 +32,22 @@ class music(commands.Cog):
 
 
     @commands.command()
-    async def play(self, ctx,*,search):
+    async def play(self, ctx,*,search = None):
+
+        embed = discord.Embed(color=discord.Color.blue(), title="",description="")
+        if search==None and ctx.voice_client.is_paused():
+            ctx.voice_client.resume()
+            embed.add_field(name ="", value ="Song resumed")
+            await ctx.reply(embed=embed) 
+            return
+        elif search == None:
+            embed.add_field(name ="", value ="You must send a song with this command")
+            await ctx.reply(embed=embed)
+            return
         voice_channel = ctx.author.voice.channel if ctx.author.voice else None
         if not voice_channel:
-            return await ctx.send("You must be in a voice channel")
+            embed.add_field(name ="", value ="You must be in a voice channel")
+            return await ctx.reply(embed=embed) 
         if not ctx.voice_client:
             await voice_channel.connect()
         
@@ -49,7 +61,10 @@ class music(commands.Cog):
                 url = info["url"]
                 title = info["title"]   
                 self.queues.append((url, title))
-                if ctx.voice_client.is_playing() or ctx.voice_client.is_paused(): await ctx.send(f"Added to queue: {title}")
+                if ctx.voice_client.is_playing() or ctx.voice_client.is_paused():
+                    embed = discord.Embed(color=discord.Color.blue(), title="",description="")
+                    embed.add_field(name ="", value =f"Added to queue: {title}")
+                    await ctx.reply(embed=embed)
             if not ctx.voice_client.is_playing() and not ctx.voice_client.is_paused():
                 await self.play_next(ctx)
 
@@ -58,48 +73,72 @@ class music(commands.Cog):
                 url, title = self.queues.pop(0)
                 source = await discord.FFmpegOpusAudio.from_probe(url, **ffmpeg_options)
                 ctx.voice_client.play(source, after = lambda _: self.bot.loop.create_task(self.play_next(ctx)))
-                await ctx.send(f"Now playing {title}")
+                embed = discord.Embed(color=discord.Color.blue(), title="",description="")
+                embed.add_field(name ="", value =f"Now playing {title}")
+                await ctx.send(embed=embed)
             
     @commands.command()
     async def skip(self, ctx):
             if ctx.voice_client and ctx.voice_client.is_playing():
                 ctx.voice_client.stop()
-                await ctx.send("Skipped")
+                embed = discord.Embed(color=discord.Color.blue(), title="",description="")
+                embed.add_field(name ="", value ="Skipped")
+                await ctx.reply(embed=embed)
+            elif ctx.voice_client:
+                embed = discord.Embed(color=discord.Color.blue(), title="",description="")
+                embed.add_field(name ="", value ="There is no song to skip")
+                await ctx.reply(embed=embed)
+            else:
+                embed = discord.Embed(color=discord.Color.blue(), title="",description="")
+                embed.add_field(name ="", value ="You must be in a voice channel with music to run this command")
+                await ctx.reply(embed=embed)
 
 
     @commands.command(name='pause', help='Pausa la canción')
     async def pause(self, ctx):
         if ctx.voice_client.is_playing():
             ctx.voice_client.pause()
-            await ctx.send("Song paused")
+            embed = discord.Embed(color=discord.Color.blue(), title="",description="")
+            embed.add_field(name ="", value ="Song paused")
+            await ctx.reply(embed=embed)
         else:
-            await ctx.send("No song is playing")
+            embed = discord.Embed(color=discord.Color.blue(), title="",description="")
+            embed.add_field(name ="", value ="No song is playing")
+            await ctx.reply(embed=embed)
 
     @commands.command(name='resume', help='Reanuda la canción')
     async def resume(self, ctx):
         if ctx.voice_client.is_paused():
             ctx.voice_client.resume()
-            await ctx.send("Song resumed")
+            embed = discord.Embed(color=discord.Color.blue(), title="",description="")
+            embed.add_field(name ="", value ="Song resumed")
+            await ctx.reply(embed=embed)
         else:
-            await ctx.send("The song is not paused")
+            embed = discord.Embed(color=discord.Color.blue(), title="",description="")
+            embed.add_field(name ="", value ="The song is not paused")
+            await ctx.reply(embed=embed)
 
     @commands.command(name='stop', help='Detiene la canción')
     async def stop(self, ctx):
         self.queues.clear()
         ctx.voice_client.stop()
-        await ctx.send("Bot stopped")
+        embed = discord.Embed(color=discord.Color.blue(), title="",description="")
+        embed.add_field(name ="", value ="Bot Stopped")
+        await ctx.reply(embed=embed)
 
     @commands.command()
     async def queue(self, ctx):
         async with ctx.typing():
             if self.queues:
-                message = "### This is the queue: \n```"
+                embed = discord.Embed(color=discord.Color.blue(), title="",description="")
+                message = ""
                 for i in self.queues:
-                    message +=  i[1] + "\n"
-                message += "```"
-                await ctx.send(message)
+                    message += i[1] + "\n"
+                embed.add_field(name="This is the queue:", value=message)
+                await ctx.reply(embed = embed)
             else:
                 await ctx.send("### The queue is empty")
 
 async def setup(bot):
     await bot.add_cog(music(bot))
+
