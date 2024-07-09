@@ -129,7 +129,15 @@ class music(commands.Cog):
     @commands.command()
     async def queue(self, ctx):
         async with ctx.typing():
-            if self.queues:
+            if not ctx.author.voice: 
+                embed = discord.Embed(color=discord.Color.blue(), title="",description="")
+                embed.add_field(name="You must be in a voice channel", value="")
+                await ctx.reply(embed=embed)
+            elif not ctx.voice_client:
+                embed = discord.Embed(color=discord.Color.blue(), title="",description="")
+                embed.add_field(name="The bot is not in a voice channel", value="")
+                await ctx.reply(embed=embed)
+            elif self.queues:
                 embed = discord.Embed(color=discord.Color.blue(), title="",description="")
                 message = ""
                 for i in self.queues:
@@ -137,7 +145,9 @@ class music(commands.Cog):
                 embed.add_field(name="This is the queue:", value=message)
                 await ctx.reply(embed = embed)
             else:
-                await ctx.send("### The queue is empty")
+                embed = discord.Embed(color=discord.Color.blue(), title="",description="")
+                embed.add_field(name="The queue is empty", value="")
+                await ctx.reply(embed=embed)
 
 async def setup(bot):
     await bot.add_cog(music(bot))
