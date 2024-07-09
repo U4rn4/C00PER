@@ -1,12 +1,32 @@
 import discord
 from discord.ext import commands
+import random
 
 class generic(commands.Cog):
 
     def __init__(self, bot) -> None:
         self.bot = bot
     
-    
+    @commands.command(name="randomnum", help="example = .randomnum optional[initial] final")
+    async def randomnum(self, ctx,initial, final = None):
+            if final:
+                num = random.randint(int(initial),int(final))
+            else:
+                num = random.randint(0,int(initial))
+            await ctx.reply(num)
+
+    @commands.command(name="randommember", help="example = .randommember @user1 @user2 @user3")
+    async def randommember(self, ctx, *members: discord.Member):
+        try:
+            if members:
+                member = random.choice(members)
+                await ctx.reply(f"{member.mention} has been selected")
+            else:
+                await ctx.reply("You must mention at least one user")
+        except Exception as e:
+            await ctx.reply(f"An error occurred: {e}")
+            print(e)
+
     @commands.command()
     async def join(self,ctx):
         if ctx.author.voice:

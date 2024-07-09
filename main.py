@@ -8,11 +8,10 @@ import os
 intents = discord.Intents.default()
 intents.message_content = True  # Necesario para recibir el contenido de los mensajes
 intents.voice_states = True
-intents.guilds = True
 
 vprefix = "."
 
-# Inicializa el bot con el prefijo '!' y los intents
+# Inicializa el bot con el prefijo '.' y los intents
 bot = commands.Bot(command_prefix=vprefix, intents=intents)
 
 
