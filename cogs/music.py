@@ -20,7 +20,6 @@ ytdl_format_options = {
 ffmpeg_options = {
     'options': '-vn',  # Esta opción deshabilita la salida de video, es adecuada para reproducción de audio
     'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5'
-
 }
 
 class music(commands.Cog):

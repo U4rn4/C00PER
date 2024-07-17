@@ -14,7 +14,6 @@ vprefix = "."
 # Inicializa el bot con el prefijo '.' y los intents
 bot = commands.Bot(command_prefix=vprefix, intents=intents)
 
-
 async def load():
     for filename in os.listdir('./cogs'):
         if filename.endswith('.py'):

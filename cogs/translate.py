@@ -3,6 +3,7 @@ from discord.ext import commands
 import deepl
 from apikeys import *
 
+
 class translate(commands.Cog):
 
     def __init__(self,bot):

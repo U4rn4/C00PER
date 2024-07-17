@@ -7,7 +7,7 @@
 <ul>
   <li> <b>Generic:</b> Utility commands. Random lib is imported</li>
   <li><b>Mod: </b> Moderation commands. </li>
-  <li><b>Music: </b> Full music cog with all the usual discord music bot functionalities. The yt_dlp lib is imported and the asynco one too</li>
+  <li><b>Music: </b> Full music cog with all the usual discord music bot functionalities. The yt_dlp lib is imported and the asyncio one too</li>
   <li><b>Translate:</b> This cog implements a command that can translate from diferents languages in discord using the deepl API. The deepl Api is used as well as its libray deepl</li>
 </ul>
 <p>Is important to create a new module under the name of apikeys to write there the token of the bot and also the api tokens </p>
