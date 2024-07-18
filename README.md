@@ -1,6 +1,6 @@
 <h1>C00PER BOT</h1>
 
-<p>C00per es un proyecto de programación con el objetivo de dar una base prehecha a las personas que quieran empezar ha hacer un bot de discord utilizando la libreria discord.py. </p>
+<p>C00per is a programming project with the aim of giving a pre-made base to people who want to start making a discord bot using the discord.py library. </p>
 
 <p>It uses different cogs for each different command section and these have their respective libraries and apis that have to be installed, not counting discordpy. </p>
 <p>Here are the cogs and their complements:</p>
