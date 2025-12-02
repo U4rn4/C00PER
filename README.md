@@ -11,3 +11,4 @@
   <li><b>Translate:</b> This cog implements a command that can translate from diferents languages in discord using the deepl API. The deepl Api is used as well as its libray deepl</li>
 </ul>
 <p>Is important to create a new module under the name of apikeys to write there the token of the bot and also the api tokens </p>
+<p>To start the bot you must have python installed along with the respective external libraries, then run main.py</p>
