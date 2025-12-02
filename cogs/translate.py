@@ -3,6 +3,7 @@ from discord.ext import commands
 import deepl
 from apikeys import *
 
+# To use this cog you must have the DEEPLKEY written in the apikeys module
 
 class translate(commands.Cog):
 
